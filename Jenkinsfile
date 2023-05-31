@@ -1,42 +1,52 @@
 pipeline {
-    agent any
+    agent any 
 
-    tools {
+    tools { 
         maven 'jenkinsmaven'
-        //jenkinsmaven 'Jenkinsmaven'
-        //jdk "Java11"
+        jdk 'JDK 17'
     }
-    
+
     stages {
-        stage('Build') {
+        stage('Checkout') {
             steps {
-                // Obtén el código desde un repositorio de GitHub
-                git branch: 'main', url: 'https://github.com/christianeduardoarosreuss/repomaven.git'
-                
-                // Ejecuta Maven en un agente Unix (Linux)
-                sh "mvn clean package"
-                
-                // Archivar los artefactos generados
-                archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+                git branch: 'main', url: 'https://github.com/christianarosreuss/repomaven.git'
             }
         }
-        
+
+        stage('Build') {
+            steps {
+                script {
+                    sh 'mvn clean package'
+                }
+            }
+        }
+
+        stage('Archive Artifacts') {
+            steps {
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
+            }
+        }
+
         stage('Test') {
             steps {
-                // Ejecutar pruebas de Maven
-                sh "mvn test"
+                script {
+                    sh 'mvn test'
+                }
             }
         }
 
         stage('Sonar Scanner') {
-            steps {
-                script {
-                    def sonarqubeScannerHome = tool name: 'sonar', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
-                    withCredentials([string(credentialsId: 'sonar', variable: 'sonarLogin')]) {
-                        sh "${sonarqubeScannerHome}/bin/sonar-scanner -e -Dsonar.host.url=http://SonarQube:9000 -Dsonar.login=${sonarLogin} -Dsonar.projectName=mv-maven -Dsonar.projectVersion=${env.BUILD_NUMBER} -Dsonar.projectKey=GS -Dsonar.sources=src/test/java/com/kibernumacademy/miapp -Dsonar.tests=src/test/java/com/kibernumacademy/miapp -Dsonar.language=java -Dsonar.java.binaries=."
-                    }
+        steps {
+            script {
+                def sonarqubeScannerHome = tool name: 'sonar', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                withCredentials([string(credentialsId: 'sonar', variable: 'sonarLogin')]) {
+                    sh "${sonarqubeScannerHome}/bin/sonar-scanner -e -Dsonar.host.url=http://SonarQube:9000 -Dsonar.login=${sonarLogin} -Dsonar.projectName=mv-maven -Dsonar.projectVersion=${env.BUILD_NUMBER} -Dsonar.projectKey=GS -Dsonar.sources=src/test/java/com/kibernumacademy/miapp -Dsonar.tests=src/test/java/com/kibernumacademy/miapp -Dsonar.language=java -Dsonar.java.binaries=."
                 }
             }
         }
+    }
+
+  
+
     }
 }
