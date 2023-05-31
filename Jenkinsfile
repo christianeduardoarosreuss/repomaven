@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/christianarosreuss/repomaven.git'
+                git branch: 'main', url: 'https://github.com/christianeduardoarosreuss/repomaven.git'
             }
         }
 
